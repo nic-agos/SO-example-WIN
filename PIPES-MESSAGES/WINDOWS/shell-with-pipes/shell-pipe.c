@@ -5,7 +5,7 @@
 #include <malloc.h>
 
 #define COMMAND_LENGTH 1024
-
+//prova git
 int count_args(char *start_command, int *pipe_present, char **next_command) {
 
 	char copied_string[COMMAND_LENGTH + 1];
