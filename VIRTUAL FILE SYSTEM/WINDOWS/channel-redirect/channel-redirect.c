@@ -21,7 +21,7 @@ int main(int argc, char **argv[])
 	char input_buffer[BUFFER_SIZE];
 	DWORD res;
 
-
+	//utilizzo la codifica ASCII infatti ho la specifica funzione CreateFileA()
 	hFile = CreateFileA((LPCSTR)argv[1], GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
@@ -35,7 +35,7 @@ int main(int argc, char **argv[])
 	hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
 	SetStdHandle(STD_OUTPUT_HANDLE, hFile);  //per la entry associata allo stadard output voglio che venga duplicato il canale creato dall'apertura del file A
-	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+	hStdout = GetStdHandle(STD_OUTPUT_HANDLE); //leggo la maniglia dello stdoutp ridirezionato per usarlo per la scrittura
 
 	while (1)
 	{

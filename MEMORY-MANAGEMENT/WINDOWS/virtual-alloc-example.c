@@ -2,6 +2,8 @@
 //
 
 #include <windows.h>
+#include "tchar.h"
+
 #define PAGE_SIZE 4096
 
 char buff[10 * PAGE_SIZE] = { 1 };

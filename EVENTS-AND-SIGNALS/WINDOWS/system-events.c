@@ -1,11 +1,12 @@
 // this program traps the CTRL+C system event
 
 
-#include "stdafx.h"
+//#include "stdafx.h"
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tchar.h"
 
 char buff[1024];
 
