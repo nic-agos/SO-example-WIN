@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
 		printf("trying running the child command: %s\n\n", argv[1]);
 		fflush(stdout);
-
+		//il rpcesso child eredita la maschera di affinità dal processo parent
 		newprocess = CreateProcess(argv[1],
 			"child",
 			NULL,
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 			if (strcmp(cpu, "notone") == 0)  //escludo il primo processore
 			{
 				//mask = 0xe;
-				mask = 0x2;   //00000..010
+				mask = 0x2;   //00000..010, mi interessa lavorare sul secondo processore
 			}
 			else
 			{
@@ -88,10 +88,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-
 		while (1);
-
-
 	}
 
 }

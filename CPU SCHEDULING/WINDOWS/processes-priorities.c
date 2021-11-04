@@ -31,13 +31,14 @@ int main(int argc, char *argv[])
 
 	if (argc>1)
 	{
-		memset(&si, 0, sizeof(si));
+		memset(&si, 0, sizeof(si)); //imposto a zero la zona di memoria per una taglia di si (di tipo STARTUPINFO)
 		memset(&pi, 0, sizeof(pi));
 		si.cb = sizeof(si);
 
 		printf("trying running the child command: %s\n\n", argv[1]);
 		fflush(stdout);
 
+		// argv[1] identifica l'eseguibile da eseguire come processo figlio
 		newprocess = CreateProcess(argv[1],
 			(char*)"child", //parametro passato al main dell'applicazione attivata
 			NULL,
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
 			}
 			if (strcmp(prio, "high") == 0)
 			{
-				ret = SetPriorityClass(pi.hProcess, HIGH_PRIORITY_CLASS); //cambia la priorità di tutti i threads associati
+				ret = SetPriorityClass(pi.hProcess, HIGH_PRIORITY_CLASS); //cambia la priorità di tutti i threads associati al processo
 			}
 			else
 			{
@@ -84,12 +85,8 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-
 		while (1);
-
-		
 	}
-
 }
 
 

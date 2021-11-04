@@ -32,9 +32,9 @@ int main(void)
 	hFile = CreateFile(
 		TEXT("myfile.txt"),  //TEXT macro universale quando non sappiamo a priori se compilo con ASCII o UNICODE
 		GENERIC_READ,
-		FILE_SHARE_READ,
-		NULL,
-		CREATE_ALWAYS, //|OPEN_EXISTING,
+		FILE_SHARE_READ,  //altre sessioni possono leggere il file
+		NULL,  //ACL di default
+		CREATE_ALWAYS, //|OPEN_EXISTING, 
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
 
@@ -43,25 +43,23 @@ int main(void)
 	{
 		DWORD dwErrorCode = 0;
 
-		dwErrorCode = GetLastError();
+		dwErrorCode = GetLastError(); //permette di capire il vero codice numerico dell'errore
 		_tprintf(TEXT("CreateFile error = %d\n"), dwErrorCode);  //_tprintf perchè non sappiamo se ASCII o UNICODE
 		return -1;
 	}
 
-
-
 	// Get the owner SID of the file.
 	dwRtnCode = GetSecurityInfo(
-		hFile,
+		hFile,  //handle alla sessione sul file
 		SE_FILE_OBJECT,
-		OWNER_SECURITY_INFORMATION,
-		&pSidOwner,
+		OWNER_SECURITY_INFORMATION,  //voglio anche l'owner tra le informazioni che ci vengono date
+		&pSidOwner,  //luogo dover verrà scritto il SID dell'owner
 		NULL,
 		NULL,
 		NULL,
-		&pSD);
+		&pSD);  //area di memoria dove verrà scritta l'ACL
 
-	printf("this is the owner address %p\nthis is the structure address %p\n", pSidOwner, pSD);
+	printf("this is the owner address: %p\nthis is the structure address: %p\n", pSidOwner, pSD);
 	// Check GetLastError for GetSecurityInfo error condition.
 	if (dwRtnCode != ERROR_SUCCESS)
 	{
@@ -72,9 +70,9 @@ int main(void)
 		return -1;
 	}
 
-	ConvertSidToStringSid(pSidOwner, &stringSID);  //converto da maschera di bit a stringa 
+	ConvertSidToStringSid(pSidOwner, &stringSID);  //converto l'owner da maschera di bit a stringa legibile 
 
-	_tprintf(TEXT("this is the owner SID %s\n"), stringSID);  //stampa in formato stringa
+	_tprintf(TEXT("this is the owner SID: %s\n"), stringSID);  //stampa in formato stringa il SID dell'owner
 
 
 	AcctName = (LPTSTR)malloc(4096);
@@ -83,6 +81,7 @@ int main(void)
 	dwAcctName = 4096;
 	dwDomainName = 4096;
 
+	// una volta che conoscoo il SID posso ottenere più informazioni sull'account
 	bRtnBool = LookupAccountSid(
 		NULL,                   // name of local or remote computer
 		pSidOwner,              // security identifier
