@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
 	key = GetCurrentProcessId();
 
-	sprintf(queue_name, "\\\\.\\mailslot\\client%d", key);  //stampa sul buffer queue_name invece che su stdout
+	sprintf(queue_name, "\\\\.\\mailslot\\client%d", key);  //scrive sul buffer queue_name invece che stampare su terminale (stdout)
 	my_slot_id = CreateMailslot(
 		queue_name,
 		sizeof(response_msg),
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 		ExitProcess(1);
 	}
 
-
+	// apro il mailslot del server
 	server_slot_id = CreateFile(
 		"\\\\.\\mailslot\\server",
 		GENERIC_WRITE,
@@ -78,17 +78,17 @@ int main(int argc, char *argv[])
 	}
 
 	request_message.req.service_code = REQUEST_CODE;
-	strcpy(request_message.req.queue_name, queue_name);
+	strcpy(request_message.req.queue_name, queue_name); //copio il  nome del server nel campo apposito della richiesta
 
-	if (WriteFile(server_slot_id, &request_message,
-		sizeof(request), &writtenchars, NULL) == 0)
+	//invio al mailslot del server la richiesta
+	if (WriteFile(server_slot_id, &request_message, sizeof(request), &writtenchars, NULL) == 0)
 	{
 		printf("cannot send request to the server\n");
 		fflush(stdout);
 		ExitProcess(1);
 	}
 
-
+	//attendo la risposta del server sul mailslot del client
 	if (ReadFile(my_slot_id, &response_message, SIZE, &readchars, NULL) == 0)
 	{
 		printf("error while receiving the server response, please check with the problem\n");

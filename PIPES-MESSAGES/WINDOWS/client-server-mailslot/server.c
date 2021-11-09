@@ -11,8 +11,8 @@
 #define MULTITHREAD
 
 typedef struct {
-	char queue_name[MAX_NAME_SIZE];
-	int service_code;
+	char queue_name[MAX_NAME_SIZE];  //nome del mailSlot al quale il server invierà la risposta per destinarla al client
+	int service_code; //ospiterà il codice della richiesta che proviene dal client
 } request;
 
 
@@ -49,19 +49,20 @@ void * service_thread(request_msg *request_message)
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
+
 	if (response_slot == INVALID_HANDLE_VALUE)
 	{
 		printf("cannot open response queue to the client\n");
 		ExitThread(1);
 	}
 
-	memcpy(response_message.mtext, response, 10);
-	if (WriteFile(response_slot, &response_message,	SIZE, &writtenchars, NULL) == 0)
+	memcpy(response_message.mtext, response, 10); //scrivo 10 byte sulla struct usata per rispondere, il contenuto sarà la stringa contenuta in response
+	if (WriteFile(response_slot, &response_message,	SIZE, &writtenchars, NULL) == 0)  //scrivo la risposta sul mailslot del client
 	{
 		printf("cannot return response to the client\n");
 		ExitThread(-1);
 	}
-	free(request_message);  //dealloco il buffer creato con malloc
+	free(request_message);  //dealloco il buffer creato con malloc nel main, se siamo multithread potrebbero venire sovrascritte richieste diverse
 }
 
 int main(int argc, char *argv[])
@@ -86,16 +87,18 @@ int main(int argc, char *argv[])
 
 	while (1)
 	{
-		request_message = malloc(sizeof(request_msg));
+		request_message = malloc(sizeof(request_msg));  
+		// Cerco di ottenere la richiesta proveniente dal client e la salvo nella variabile locale request_message
 		if (ReadFile(my_slot, request_message, sizeof(request_msg), &readchar, NULL) == 0)  //in &readchar byte effettivamente consegnati
 		{
 			printf("message receive error, please check the problem\n");
 			ExitProcess(1);
 		}
-		else 
+		else
 		{
 
 #ifdef MULTITHREAD
+			//creo un thread che si fa carico lui di rispondere alla richiesta del client
 			if (CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)service_thread, request_message, 0, &thread_id)
 				== INVALID_HANDLE_VALUE)
 			{
