@@ -8,16 +8,18 @@ char buff[10 * PAGE_SIZE] = { 1 }; //just to move the break
 
 int main(int argc, _TCHAR* argv[])
 {
-	unsigned int page_address = (unsigned int)buff;
+	unsigned int page_address = (unsigned int)buff; 
 	void* p;
 
 	while (1)
 	{
-		p = VirtualAlloc((LPVOID)(page_address), PAGE_SIZE, MEM_RESERVE, PAGE_READWRITE);
+		/* iterativamente cerco di mappare un'unica pagina in memoria, il terzo parametro indica l'uso che si farà di quelle pagine, 
+		 in questo caso le pagine non ancora utilizzabili perchè non ne ho ancora fatto il commit */
+		p = VirtualAlloc((LPVOID)(page_address), PAGE_SIZE, MEM_RESERVE, PAGE_READWRITE);  
 
 		if (p)
 		{
-			//  printf("boundary was at %p - page requested address %p - initial guess is at %p - main text is at %p - diff is %d", p, page_address,buff,main,(char*)buff-(char*)main);
+			// printf("boundary was at %p - page requested address %p - initial guess is at %p - main text is at %p - diff is %d", p, page_address,buff,main,(char*)buff-(char*)main);
 			printf("boundary was at %p - page requested address %p - initial guess is at %p - main text is at %p\n", p, page_address, buff, main);
 			fflush(stdout);
 			break;
@@ -30,10 +32,10 @@ int main(int argc, _TCHAR* argv[])
 	}
 
 	if (argc > 1)
-	if (strcmp(argv[1], "commit")==0)
-	{
-		VirtualAlloc((LPVOID)(p), PAGE_SIZE, MEM_COMMIT, PAGE_READWRITE);
-	}
+		if (strcmp(argv[1], "commit")==0)
+		{
+			VirtualAlloc((LPVOID)(p), PAGE_SIZE, MEM_COMMIT, PAGE_READWRITE);
+		}
 
 	scanf("%s", (char*)p); //segfault if memory is not committed
 
@@ -54,8 +56,8 @@ int main(int argc, _TCHAR* argv[])
 			VirtualAlloc((LPVOID)(p), PAGE_SIZE, MEM_COMMIT, PAGE_READWRITE);
 		}
 
-		printf("%s\n", (char*)p);
-		fflush(stdout);
-		return 0;
+	printf("%s\n", (char*)p);
+	fflush(stdout);
+	return 0;
 }
 
