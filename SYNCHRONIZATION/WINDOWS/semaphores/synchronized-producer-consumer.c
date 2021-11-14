@@ -28,11 +28,12 @@ DWORD producer(void){
 	fflush(stdout);
 
 retry:
-	WaitForSingleObject(sem_free_slot[my_index], INFINITE);
+	WaitForSingleObject(sem_free_slot[my_index], INFINITE); // attendo di prendere il token dal semaforo
 
 	v[my_index] = data;
 
-	ReleaseSemaphore(sem_available_item[my_index],1,&dummy);
+	// rilascio il token sul semaforo sem_available_item per comunicare che c'è qualcosa da leggere
+	ReleaseSemaphore(sem_available_item[my_index], 1, &dummy); 
 	my_index = (my_index + 1) % SIZE;
 	data++;
 			counter++;
@@ -72,7 +73,9 @@ retry:
 			ExitProcess(0);
 	}
 
-	ReleaseSemaphore(sem_free_slot[my_index],1,&dummy);
+	/* rilascio il token sul semaforo che indica allo scrittore che il 
+	 dato precedente è stato letto, ora può sovrascrivere quella zona */
+	ReleaseSemaphore(sem_free_slot[my_index],1,&dummy); 
 
 	my_index = (my_index + 1) % SIZE;
 
@@ -93,11 +96,12 @@ int main(int argc, char *argv[]) {
 	DWORD hid;
 	DWORD exit_code;
 	int i;
-	char buffer[128];//mutex names
+	char buffer[128];  //mutex names
 
+	// in windows i semafori sono named, creo SIZE semafori diversi
 	for (i = 0; i < SIZE; i++){
 		sprintf(buffer, "slots%d", i);
-		sem_free_slot[i] = CreateSemaphore(NULL, 1,1, buffer);
+		sem_free_slot[i] = CreateSemaphore(NULL, 1, 1, buffer);
 		sprintf(buffer, "items%d", i);
 		sem_available_item[i] = CreateSemaphore(NULL, 0,1, buffer);
 

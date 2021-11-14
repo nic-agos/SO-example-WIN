@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int lock(LONG * lock){
+// funzione custom che cerca di prendere una sola volta il lock, non ha ciclo di retry
+int try_lock(LONG * lock){  
 	int ret;
 
 	ret = (int)InterlockedBitTestAndSet(lock, 0);
@@ -13,7 +14,6 @@ int lock(LONG * lock){
 	return 0;
 
 }
-
 
 LONG global_lock = 0;
 
@@ -35,7 +35,7 @@ DWORD producer(void){
 	fflush(stdout);
 
 retry:
-	if (lock(&global_lock)){
+	if (try_lock(&global_lock)){
 
 		if (counter < SIZE){
 			v[my_index] = data;
@@ -50,7 +50,6 @@ retry:
 	goto retry;
 
 	return 0;
-
 }
 
 WORD consumer(void){
@@ -63,7 +62,7 @@ WORD consumer(void){
 	fflush(stdout);
 
 retry:
-	if (lock(&global_lock)){
+	if (try_lock(&global_lock)){
 		if (counter > 0){
 			value = v[my_index];
 
@@ -84,7 +83,7 @@ retry:
 			my_index = (my_index + 1) % SIZE;
 
 			data++;
-			counter--;
+			counter--; // diminuisco il numero di dati da leggere
 
 		}
 		global_lock = 0;
