@@ -12,8 +12,9 @@
 #define AUTO_KILLER
 
 #define SHOW
-//#define VERBOSE
+// #define VERBOSE
 
+/*registrerò 3 nuovi tipi di messaggi evento, con in seguenti nomi*/
 char *command1 = (char*)"command1";
 char *command2 = (char*)"command2";
 char *term = (char*)"term";
@@ -26,13 +27,14 @@ UINT msg_type = 0;
 
 HWND hWindow;
 
+/* è il kernel ad invocarla, non c'è una specifica invoazione nel codice*/
 LRESULT CALLBACK WndProc(HWND hWindow, UINT message, WPARAM wParam, LPARAM lParam) {
 
 #ifdef VERBOSE
         printf("thread %d is processing an event-message\n", GetCurrentThreadId());
         fflush(stdout);
 #endif
-
+        /*evento di creazione*/
         if (message == WM_CREATE) {
                 printf("window creation ok\n");
                 fflush(stdout);
@@ -54,12 +56,16 @@ LRESULT CALLBACK WndProc(HWND hWindow, UINT message, WPARAM wParam, LPARAM lPara
         if (message == term_type) {
                 printf("requested termination\n");
                 fflush(stdout);
-                PostQuitMessage(0);
+                /* PostQuitMessage() serveper postare verso il processo corrente un messaggio-evento di tipo VM_QUIT, 
+                 avrà effetto nel polling perchè una GetMessage() ritorna 0 e riusciamo ad uscire dal ciclo di polling*/
+                PostQuitMessage(0);  
                 return 3;
         }
 
 #ifdef SHOW
+        /*VM_CLOSE è il messaggio che viene inviato quando chiudiamo una finestra con la crocetta in alto a destra*/
         if (message == WM_CLOSE) {
+                /*non gestisco la chiusura della finestra perchè non posto il messaggio di tipo VW_QUIT*/ 
                 printf("you will not close me this way!!\n");
                 fflush(stdout);
                 return 4;
@@ -70,7 +76,7 @@ LRESULT CALLBACK WndProc(HWND hWindow, UINT message, WPARAM wParam, LPARAM lPara
 #ifdef VERBOSE
         printf("going for default  treatment\n");
 #endif
-
+        // chiamiamo la procedura di default per tutti gli altri tipi di evento
         return (DefWindowProc(hWindow, message, wParam, lParam));
 
 }
@@ -87,7 +93,7 @@ DWORD WINAPI Killer(void * nothing) {
 
                 printf("trying to kill with '%s' event-message\n", buff);
 
-                msg_type = RegisterWindowMessage(buff);
+                msg_type = RegisterWindowMessage(buff);  /*inserendo da shell command1, command2 o term faccio la discovery dei loro codici */
                 if (!msg_type) {
                         printf("Can't create '%s' event-message for error %u\n", buff, GetLastError());
                         fflush(stdout);
@@ -97,7 +103,7 @@ DWORD WINAPI Killer(void * nothing) {
                         printf("event-message '%s' correctly registered - code is %u\n", buff, msg_type);
                 }
 
-                ret = PostMessage(HWND_BROADCAST, msg_type, 0, 0);
+                ret = PostMessage(HWND_BROADCAST, msg_type, 0, 0);  //invio il messaggio a tutte le finestre top-level con un messaggio evento 
                 printf("event-message post returned %d\n", ret);
         }
 
@@ -114,6 +120,7 @@ void main(int argc, char *argv[]){
         int ret;
         MSG msg;
 
+        /*registro il messaggio relativo alla stringa term e fi faccio restituire il codice in term_type*/
         term_type = RegisterWindowMessage(term);
         if (!term_type) {
                 printf("Can't create term message for error %d\n", GetLastError());
@@ -145,7 +152,7 @@ void main(int argc, char *argv[]){
         }
 
         wndclass.style = CS_HREDRAW | CS_VREDRAW;
-        wndclass.lpfnWndProc = WndProc;
+        wndclass.lpfnWndProc = WndProc;  //procedura di gestione dei messaggi-evento per questa classe
         wndclass.cbClsExtra = 0;
         wndclass.cbWndExtra = 0;
         wndclass.hInstance = NULL;
@@ -153,13 +160,15 @@ void main(int argc, char *argv[]){
         wndclass.hCursor = LoadIcon(NULL, IDC_ARROW);
         wndclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
         wndclass.lpszMenuName = NULL;
-        wndclass.lpszClassName = nome_applicazione;
+        wndclass.lpszClassName = nome_applicazione;  //nome della classe
 
+        /*definisco una nuova classe di finestre*/
         if (!RegisterClass(&wndclass)) {
                 printf("Can't register class"); fflush(stdout);
                 ExitProcess(-1);
         }
 
+        //creo una finestra top level (non ha parent) associata alla classe sopra definita
         hWindow = CreateWindow(nome_applicazione,
                 "Test su messaggi-evento",
                 WS_OVERLAPPEDWINDOW,
@@ -179,7 +188,7 @@ void main(int argc, char *argv[]){
         }
 
 #ifdef SHOW
-        ShowWindow(hWindow, SW_SHOW);
+        ShowWindow(hWindow, SW_SHOW);  // mostro la finestra
 #endif
 
 #ifdef AUTO_KILLER
@@ -192,7 +201,7 @@ void main(int argc, char *argv[]){
 
         printf("start polling on main tread\n");
         fflush(stdout);
-        while (ret = GetMessage(&msg, NULL, 0, 0)) {
+        while (ret = GetMessage(&msg, NULL, 0, 0)) {  // utilizzando NULL sto chiedendo se c'è un qualsiasi messaggio per qualsiasi finestra
                 if (ret == -1) {
                         printf("event-message poll error\n");
                 }
@@ -202,8 +211,8 @@ void main(int argc, char *argv[]){
                         printf("thread %d is dispatching an event-message\n", GetCurrentThreadId());
                         fflush(stdout);
                         #endif
-                        TranslateMessage(&msg);
-                        DispatchMessage(&msg);
+                        TranslateMessage(&msg);  //codifico in maniera corretta il messaggio
+                        DispatchMessage(&msg);  // perdo il controllo a favore del gestore degli eventi
                 }
         }
 

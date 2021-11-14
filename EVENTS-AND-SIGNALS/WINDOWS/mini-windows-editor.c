@@ -67,18 +67,18 @@ LRESULT CALLBACK WndProc(HWND hWindow, UINT message, WPARAM wParam, LPARAM lPara
                 return 3;
         }
 
-        if (message == WM_COMMAND) {
+        if (message == WM_COMMAND) { //se il messaggio arriva dalle finestre button
                 VERBOSE printf("process asked to run some menu/command - param is %d\n", wParam);
                 if (wParam == BN_CLICKED) {
                         printf("button pressed\n");
                         if ((HWND)lParam == hwndButtonA) {
                                 printf("button identified - load text\n");
-                                SendMessage(hEdit, WM_SETTEXT, READ_BUFFER, (LPARAM)text);
+                                SendMessage(hEdit, WM_SETTEXT, READ_BUFFER, (LPARAM)text); // sollecito il caricamento del testo, VM_SETTEXT è un messaggio predefinito
                                 fflush(stdout);
                         }
                         if ((HWND)lParam == hwndButtonB) {
                                 printf("button identified - store text\n");
-                                SendMessage(hEdit, WM_GETTEXT, READ_BUFFER, (LPARAM)text);
+                                SendMessage(hEdit, WM_GETTEXT, READ_BUFFER, (LPARAM)text); // acquisico in text il testo scritto nella textbox, VM_GETTEXT è un messaggio predefinito
                                 printf("text window got message:\n%s\n", text);
 
                                 SetFilePointer(file, 0, NULL, FILE_BEGIN);
@@ -94,7 +94,7 @@ LRESULT CALLBACK WndProc(HWND hWindow, UINT message, WPARAM wParam, LPARAM lPara
                 fflush(stdout);
 
 #ifdef WITH_TEXT
-                if (wParam == 128) {
+                if (wParam == 128) {  // ho premuto quit dal menu
 
                         SendMessage(hEdit, WM_GETTEXT, READ_BUFFER, (LPARAM)text);
                         printf("mineditor got request to quit message - text box had this content:\n%s\n", text);
@@ -164,21 +164,23 @@ void main(int argc, char *argv[]){
         HMENU MenuList;
         HMENU BMenu;
 
-
+        /*OPEN_ALWAYS: se il file esiste lo apro altrimenti lo creo*/ 
         file = CreateFile(argv[1], GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if (file == INVALID_HANDLE_VALUE) {
                 printf("Cannot open file to edit\n");
                 fflush(stdout);
                 return;
         }
-
+        /*leggo il contenuto di un file e lo scrivo su un buffer*/
         if (ReadFile(file, text, READ_BUFFER, &size, NULL) == 0) {
                 printf("Cannot read from file\n");
                 fflush(stdout);
                 return;
         }
 
-        text[size] = '\0';
+        /* posiziono uno \0 alla fine del buffer per determinare 
+        una rappresentazione stringa di tutto il contenuto del file*/
+        text[size] = '\0'; 
 
         term_type = RegisterWindowMessage(term);
         if (!term_type) {
@@ -232,7 +234,7 @@ void main(int argc, char *argv[]){
         //managing the mneu
         hMenu = CreateMenu();
 
-        AppendMenu(hMenu, MF_STRING, 128, "Quit");
+        AppendMenu(hMenu, MF_STRING, 128, "Quit"); // aggiungo la voce quit al menu e gli assegno il codice 128
 
 
         MenuList = CreateMenu();
@@ -265,9 +267,9 @@ void main(int argc, char *argv[]){
                 100,        // Button width
                 60,        // Button height
                 hWindow,     // Parent window
-                NULL,       // No menu.
+                NULL,       // No menu
                 (HINSTANCE)GetWindowLong(hWindow, GWL_HINSTANCE),
-                NULL);      // Pointer not needed.
+                NULL);      // Pointer not needed
 
         hwndButtonB = CreateWindow(
                 "BUTTON",  // Predefined class
@@ -284,7 +286,8 @@ void main(int argc, char *argv[]){
 
 #endif
 
-#ifdef WITH_TEXT
+#ifdef WITH_TEXT /*aggiungo una finestra di edit di testo*/
+
         hEdit = CreateWindowEx(WS_EX_CLIENTEDGE,
                 "EDIT",
                 "",
@@ -294,7 +297,7 @@ void main(int argc, char *argv[]){
                 20,
                 500,
                 500,
-                hWindow,
+                hWindow, //imposto il parent
                 NULL,
                 GetModuleHandle(NULL),
                 NULL);
@@ -326,8 +329,6 @@ void main(int argc, char *argv[]){
         }
 
         ExitProcess(0);
-
-
 }
 
 
