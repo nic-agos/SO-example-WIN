@@ -29,6 +29,7 @@ int main(int argc, char **argv[])
 	int i = 0;
 
 	printf("file name is: %s - give me the input\n", argv[1]);
+	/*CREATE_ALWAYS crea un nuovo file se non esiste, se esiste già e si hanno i permessi per scriverci lo sovrascrive*/
 	hReverseFile = CreateFileA((LPCSTR)argv[1], GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hReverseFile == INVALID_HANDLE_VALUE)
 	{

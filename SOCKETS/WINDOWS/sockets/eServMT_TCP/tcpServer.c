@@ -11,7 +11,7 @@
 #include <winsock.h>
 #include <stdlib.h>
 
-#include "helper.h"           /*  Our own helper functions  */
+#include "helper.h"          /*  Our own helper functions  */
 
 /*  Global constants  */
 

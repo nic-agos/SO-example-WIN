@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 	if (argc == 1) /* Creazione pipe nel parent */
 	{ 
 		security.nLength = sizeof(security);
-		security.lpSecurityDescriptor = NULL;  //ACL è null quindi default
+		security.lpSecurityDescriptor = NULL;  //ACL Ã¨ null quindi default
 		security.bInheritHandle = TRUE;
 		rit = CreatePipe(&readHandle, &writeHandle, &security, 0); //0 imposta la taglia della pipe a default
 		if (!rit) Errore_("Errore nella CreatePipe");
@@ -32,13 +32,13 @@ int main(int argc, char *argv[])
 		temp_readHandle = GetStdHandle(STD_INPUT_HANDLE);  //recuperiamo l'handle dello stdin
 		SetStdHandle(STD_INPUT_HANDLE, readHandle);  //devio lo stdin sulla pipe per passarlo al figlio modificato
 		
-		//rilancio questo programma con due parametri quindi entrerà nel ramo del child
-		newprocess = CreateProcess((LPCSTR)".\\pipe-example.exe", (LPSTR)".\\pipe-example.exe lettore", NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);       
+		//rilancio questo programma con due parametri quindi entrerÃ  nel ramo del child
+		newprocess = CreateProcess((LPCSTR)".\\pipe-example.exe", (LPSTR)".\\pipe-example.exe lettore", NULL, NULL, TRUE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
 		
 		if (newprocess == 0)
 		{ 
-			printf("Errore nella generazione dello scrittore!\n");               
-			ExitProcess(-1); 
+			printf("Errore nella generazione dello scrittore!\n");
+			ExitProcess(-1);
 		}          
 		
 		SetStdHandle(STD_INPUT_HANDLE, temp_readHandle); /*imposto nuovamente lo stdin del processo padre*/
@@ -50,13 +50,13 @@ int main(int argc, char *argv[])
 		do
 		{
 			fgets(messaggio, 30, stdin);
-			rit = WriteFile(writeHandle, messaggio, 30, &result, NULL);  /*il padre scrive diretto sulla pipe, scrive 30 byte anche se il messaggio è più corto*/
-			if (!rit) Errore_("Errore nella writefile!");             
+			rit = WriteFile(writeHandle, messaggio, 30, &result, NULL);  /*il padre scrive diretto sulla pipe, scrive 30 byte anche se il messaggio ï¿½ piï¿½ corto*/
+			if (!rit) Errore_("Errore nella writefile!");    
 			printf("scritto messaggio: %s", messaggio);
 			fflush(stdout);
 		} while (strcmp(messaggio, "quit\n") != 0);
 
-		CloseHandle(writeHandle);          
+		CloseHandle(writeHandle);      
 		WaitForSingleObject(pi.hProcess, INFINITE);  //attendo il figlio
 	}
 	else  //siamo nel processo figlio
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 		{
 			do
 			{
-				/*la maniglia associata allo stadin nel figlio sarà la maniglia di lettura alla pipe che prima il parent gli ha passato*/
+				/*la maniglia associata allo stadin nel figlio sarï¿½ la maniglia di lettura alla pipe che prima il parent gli ha passato*/
 				rit = ReadFile(GetStdHandle(STD_INPUT_HANDLE), messaggio, 30, &result, NULL);  
 				if (rit)
 				{
